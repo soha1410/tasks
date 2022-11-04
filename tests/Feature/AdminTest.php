@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Task;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -50,5 +51,14 @@ class AdminTest extends TestCase
                 'role'
             ]]
         ]);
+    }
+    public function test_add_admin()
+    {
+        $jwt = $this->loginAs('admin');
+        $user = User::where('role', 'user')->inRandomOrder()->first();
+        $response = $this->json('patch', "/api/users/{$user->id}", [], ['Authorization' => $jwt]);
+        $response->assertStatus(200);
+        $user=$user->fresh();
+        $this->assertTrue($user->isAdministrator());
     }
 }

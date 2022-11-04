@@ -24,9 +24,9 @@ class Task extends Model
     }
     public  function attachMentionedUsers()
     {
-        $res = preg_match_all('/@[\w]+ /', $this->desc, $usernames);
+        $res = preg_match_all('/@([\w\.\d]+)/', $this->desc, $usernames);
         if ($res) {
-            $userIds = User::whereIn('username', $usernames)->get()->pluck('id');
+            $userIds = User::whereIn('username', $usernames[1])->get()->pluck('id');
             $this->users()->sync($userIds);
         }
     }

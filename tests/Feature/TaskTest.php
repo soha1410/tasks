@@ -4,10 +4,32 @@ namespace Tests\Feature;
 
 use App\Models\Mention;
 use App\Models\Task;
+use App\Models\User;
 use Tests\TestCase;
 
 class TaskTest extends TestCase
 {
+    public function test_create_by_mention_task()
+    {
+        $jwt = $this->loginAs('user');
+        $data = Task::factory()->definition();
+        $users = User::select()->inRandomOrder()->limit(2)->get();
+        $text = "@" . $users[0]->username . ' ' . $data['desc'] . " @" . $users[1]->username;
+        $data['desc'] = $text;
+        $response = $this->json('post', '/api/tasks', $data, ['Authorization' => $jwt]);
+        $response->assertStatus(201);
+        $response->assertJsonStructure([
+            'data' => [
+                'id',
+                'title',
+                'desc'
+            ]
+        ]);
+        $task = Task::find($response->json()['data']['id']);
+        foreach ($users as $user) {
+            $this->assertTrue($task->isAccessibleForUser($user));
+        }
+    }
     public function test_create_task()
     {
         $jwt = $this->loginAs('user');
